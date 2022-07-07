@@ -103,14 +103,28 @@ public class App {
         int accountId = currentAccount.getAccountId();
         Transfer[] transfers = applicationService.getTransferHistory(currentUser, accountId);
         for(Transfer transfer : transfers){
-            System.out.println(transfer.toString());
+           if(transfer.getTransferAccountFrom()==accountId){
+               String userName = applicationService.getUser(currentUser, Math.toIntExact(currentUser.getUser().getId())).getUsername();
+               System.out.println("transferId" + " " + transfer.getTransferId() + " "+ "receiver" + " "+ transfer.getTransferAccountTo() + " "+ "$amount" + " " + transfer.getAmount());
+           }
+           if(transfer.getTransferAccountTo()==accountId){
+               String userName = applicationService.getUser(currentUser, Math.toIntExact(currentUser.getUser().getId())).getUsername();
+               System.out.println("transferId" + " " + transfer.getTransferId() + " "+ "from" + " "+ transfer.getTransferAccountFrom() + " "+ "$amount" + " " + transfer.getAmount());
+           };
        }
         //System.out.println("History will be listed Here!");
 
     }
 
 	private void viewPendingRequests() {
-		// TODO Auto-generated method stub
+        Account currentAccount = applicationService.getAccountByUserId(currentUser, Math.toIntExact(currentUser.getUser().getId()));
+        int accountId = currentAccount.getAccountId();
+        Transfer[] transfers = applicationService.getTransferHistory(currentUser, accountId);
+        for(Transfer transfer : transfers){
+            if(transfer.getTransferStatusId()==1){
+                System.out.println("transferId" + " " + transfer.getTransferId() + " "+ "from" + " "+ transfer.getTransferAccountFrom() + " "+ "$amount" + " " + transfer.getAmount());
+            }
+        }
 		
 	}
 
@@ -145,7 +159,7 @@ public class App {
 
             applicationService.sendTeMoney(currentUser, newTransfer);
             System.out.println(transferAmount + " TE Bucks Succesfully Sent to " + sendToAccountId);
-            System.out.println("Your Current Balance is " + currentAccount.getBalance());
+            System.out.println("Your Current Balance is " + applicationService.getBalance(currentUser));
         }
 
         //System.out.println("TE Bucks successfully Sent!");
@@ -155,7 +169,37 @@ public class App {
 	}
 
 	private void requestBucks() {
-		// TODO Auto-generated method stub
+        Account currentAccount = applicationService.getAccountByUserId(currentUser, Math.toIntExact(currentUser.getUser().getId()));
+        int accountId = currentAccount.getAccountId();
+
+        int sendToUserId = consoleService.promptForInt("Please enter the User Id you would like to request Bucks.");
+        Account sendToAccount = applicationService.getAccountByUserId(currentUser, sendToUserId);
+        int sendToAccountId = sendToAccount.getAccountId();
+
+        if(sendToUserId == currentAccount.getUserId()){
+            System.out.println("Requesting money from yourself is not permitted");
+            consoleService.pause();
+        }else {
+            BigDecimal transferAmount = consoleService.promptForBigDecimal("Please enter the Amount.");
+            if (transferAmount.compareTo(new BigDecimal("0")) <= 0) {
+                System.out.println("The Amount must be greater than 0!");
+                consoleService.pause();
+            }
+
+
+            Transfer newTransfer = new Transfer();
+            newTransfer.setTransferTypeId(1);
+            newTransfer.setTransferStatusId(1);
+            newTransfer.setAmount(transferAmount);
+            newTransfer.setTransferAccountTo(sendToAccountId);
+            newTransfer.setTransferAccountFrom(accountId);
+
+            applicationService.sendTeMoney(currentUser, newTransfer);
+            System.out.println(transferAmount + " Your request has been sent to  " + sendToAccountId);
+
+
+
+        }
 		
 	}
 
