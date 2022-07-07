@@ -35,10 +35,12 @@ public class JdbcTransferDao implements TransferDao{
         BigDecimal accountToBalance = accountTo.getBalance().getBalance();
         BigDecimal transferAmount = transfer.getAmount();
 
-        //If the status is approved (transaction)
-        if (transfer.getTransferStatusId() == 1) {
-            accountFromBalance = accountFromBalance.subtract(transferAmount);
-            accountToBalance = accountToBalance.add(transferAmount);
+        //If the status is approved (transaction) -- Can be changed
+        if (transfer.getTransferStatusId() == 2) {
+            if(accountFromBalance.compareTo(transferAmount) > 0) {
+                accountFromBalance = accountFromBalance.subtract(transferAmount);
+                accountToBalance = accountToBalance.add(transferAmount);
+            }
         }
 
         // Insert transfer in transfer table and update balance for each sender and receiver
@@ -53,7 +55,7 @@ public class JdbcTransferDao implements TransferDao{
 
     @Override
     public void transferApprove(Transfer transfer) {
-        int transferStatus = 1;
+        int transferStatus = 2;
 
         String sql= "UPDATE tenmo_transfer SET transfer_status_id = ? WHERE transfer_id = ?;";
 
@@ -63,7 +65,7 @@ public class JdbcTransferDao implements TransferDao{
 
     @Override
     public void transferReject(Transfer transfer) {
-        int transferStatus = 2;
+        int transferStatus = 3;
 
         String sql= "UPDATE tenmo_transfer SET transfer_status_id = ? WHERE transfer_id = ?;";
 
