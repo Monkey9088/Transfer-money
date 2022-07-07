@@ -1,12 +1,7 @@
 package com.techelevator.tenmo.controller;
 
-import com.techelevator.tenmo.dao.AccountDao;
-import com.techelevator.tenmo.dao.TransferDao;
-import com.techelevator.tenmo.dao.UserDao;
-import com.techelevator.tenmo.model.Account;
-import com.techelevator.tenmo.model.Balance;
-import com.techelevator.tenmo.model.Transfer;
-import com.techelevator.tenmo.model.User;
+import com.techelevator.tenmo.dao.*;
+import com.techelevator.tenmo.model.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.web.PortResolverImpl;
@@ -23,11 +18,15 @@ public class TenmoController {
     private UserDao userDao;
     private AccountDao accountDao;
     private TransferDao transferDao;
+    private TransferTypeDao transferTypeDao;
+    private TransferStatusDao transferStatusDao;
 
-    public TenmoController(UserDao userDao, AccountDao accountDao,TransferDao transferDao) {
+    public TenmoController(UserDao userDao, AccountDao accountDao, TransferDao transferDao, TransferTypeDao transferTypeDao, TransferStatusDao transferStatusDao) {
         this.userDao = userDao;
         this.accountDao = accountDao;
         this.transferDao = transferDao;
+        this.transferTypeDao = transferTypeDao;
+        this.transferStatusDao = transferStatusDao;
     }
  @RequestMapping(path = "/balance", method = RequestMethod.GET)
     public Balance getBalance(Principal principal){
@@ -78,6 +77,11 @@ public class TenmoController {
         return transferDao.getByTransferId(id);
     }
 
+    @GetMapping("/transfer/type/{id}")
+    public TransferType getTransferTypeById(@PathVariable  int id) {return transferTypeDao.getAllTransfersById(id);}
+
+    @GetMapping("/transfer/status/{id}")
+    public TransferStatus getTransferStatusById(@PathVariable int id) {return transferStatusDao.getTransferStatusById(id);}
 
 
 
