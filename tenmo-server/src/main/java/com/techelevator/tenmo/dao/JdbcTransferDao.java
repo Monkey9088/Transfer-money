@@ -29,7 +29,6 @@ public class JdbcTransferDao implements TransferDao{
         Account accountFrom = accountDao.getAccountById(accountFromId);
         Account accountTo = accountDao.getAccountById(accountToId);
 
-
         //Get Balance of accounts
         BigDecimal accountFromBalance = accountFrom.getBalance().getBalance();
         BigDecimal accountToBalance = accountTo.getBalance().getBalance();
@@ -37,15 +36,13 @@ public class JdbcTransferDao implements TransferDao{
 
         //If the status is approved (transaction) -- Can be changed
         if (transfer.getTransferStatusId() == 2) {
-            if(accountFromBalance.compareTo(transferAmount) > 0) {
                 accountFromBalance = accountFromBalance.subtract(transferAmount);
                 accountToBalance = accountToBalance.add(transferAmount);
-            }
         }
 
         // Insert transfer in transfer table and update balance for each sender and receiver
         String sql = "INSERT INTO tenmo_transfer (transfer_type_id, transfer_status_id, account_from, account_to, amount) " +
-                "VALUES (? ,?, ?, ?, ? );" +
+                "VALUES (? ,?, ?, ?, ? ); " +
                 "UPDATE tenmo_account SET balance = ? WHERE account_id = ?; " +
                 "UPDATE tenmo_account SET balance = ? WHERE account_id = ?; ";
 
@@ -74,7 +71,7 @@ public class JdbcTransferDao implements TransferDao{
     }
 
     @Override
-    public List<Transfer> listAllByAccountId(int accountId) {
+    public List<Transfer> listAllTransfersByAccountId(int accountId) {
         List<Transfer> transferList = new ArrayList<>();
         String sql = "SELECT * FROM tenmo_transfer WHERE account_to = ? OR account_from = ?; ";
 

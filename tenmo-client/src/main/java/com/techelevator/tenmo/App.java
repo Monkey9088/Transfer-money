@@ -1,12 +1,12 @@
 package com.techelevator.tenmo;
 
-import com.techelevator.tenmo.model.AuthenticatedUser;
-import com.techelevator.tenmo.model.Balance;
-import com.techelevator.tenmo.model.UserCredentials;
+import com.techelevator.tenmo.model.*;
 import com.techelevator.tenmo.services.ApplicationService;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.ConsoleService;
+import org.springframework.beans.NullValueInNestedPathException;
 
+import java.math.BigDecimal;
 import java.sql.SQLOutput;
 
 public class App {
@@ -99,8 +99,15 @@ public class App {
 
 	private void viewTransferHistory() {
 		// TODO Auto-generated method stub
-		
-	}
+		Account currentAccount = applicationService.getAccountByUserId(currentUser, Math.toIntExact(currentUser.getUser().getId()));
+        int accountId = currentAccount.getAccountId();
+        Transfer[] transfers = applicationService.getTransferHistory(currentUser, accountId);
+        for(Transfer transfer : transfers){
+            System.out.println(transfer.toString());
+       }
+        //System.out.println("History will be listed Here!");
+
+    }
 
 	private void viewPendingRequests() {
 		// TODO Auto-generated method stub
@@ -109,7 +116,42 @@ public class App {
 
 	private void sendBucks() {
 		// TODO Auto-generated method stub
-		
+        Account currentAccount = applicationService.getAccountByUserId(currentUser, Math.toIntExact(currentUser.getUser().getId()));
+        int accountId = currentAccount.getAccountId();
+
+        int sendToUserId = consoleService.promptForInt("Please enter the User Id you would like to send Bucks.");
+        Account sendToAccount = applicationService.getAccountByUserId(currentUser, sendToUserId);
+        int sendToAccountId = sendToAccount.getAccountId();
+
+        if(sendToUserId == currentAccount.getUserId()){
+            System.out.println("Sending money to yourself is not permitted!");
+            consoleService.pause();
+        }else{
+            BigDecimal transferAmount = consoleService.promptForBigDecimal("Please enter the Amount.");
+            if(transferAmount.compareTo(new BigDecimal("0")) <= 0){
+                System.out.println("The Amount must be greater than 0!");
+                consoleService.pause();
+            }
+            if(transferAmount.compareTo(applicationService.getBalance(currentUser).getBalance()) >= 1){
+                System.out.println("The Amount must be less than your Current Balance!");
+                consoleService.pause();
+            }
+            Transfer newTransfer = new Transfer();
+            newTransfer.setTransferTypeId(2);
+            newTransfer.setTransferStatusId(2);
+            newTransfer.setAmount(transferAmount);
+            newTransfer.setTransferAccountTo(sendToAccountId);
+            newTransfer.setTransferAccountFrom(accountId);
+
+            applicationService.sendTeMoney(currentUser, newTransfer);
+            System.out.println(transferAmount + " TE Bucks Succesfully Sent to " + sendToAccountId);
+            System.out.println("Your Current Balance is " + currentAccount.getBalance());
+        }
+
+        //System.out.println("TE Bucks successfully Sent!");
+
+
+
 	}
 
 	private void requestBucks() {

@@ -8,7 +8,7 @@ public interface TransferDao {
     void transfer(Transfer transfer);
     void transferApprove(Transfer transfer);
     void transferReject(Transfer transfer);
-    List<Transfer> listAllByAccountId(int accountId);
+    List<Transfer> listAllTransfersByAccountId(int accountId);
     Transfer getByTransferId(int transferId);
 
 }

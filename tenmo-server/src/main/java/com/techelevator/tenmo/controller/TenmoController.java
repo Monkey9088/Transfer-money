@@ -57,6 +57,7 @@ public class TenmoController {
         transferDao.transfer(transfer);
     }
 
+
     @PutMapping("/transfer/approve")
     public void transferApprove(@RequestBody Transfer transfer){
         transferDao.transferApprove(transfer);
@@ -69,14 +70,18 @@ public class TenmoController {
 
     @GetMapping("/transfer/user/{id}")
     public List<Transfer> getAllTransferById(@PathVariable int id){
-        return transferDao.listAllByAccountId(id);
+        return transferDao.listAllTransfersByAccountId(id);
     }
 
+    //Get All transfers by Account Id
+    //@path accountId
     @GetMapping("/transfer/{id}")
     public Transfer getByTransferId(@PathVariable int id){
         return transferDao.getByTransferId(id);
     }
 
+    //Get Transfers by Transfer Type
+    //@path Type Id
     @GetMapping("/transfer/type/{id}")
     public TransferType getTransferTypeById(@PathVariable  int id) {return transferTypeDao.getAllTransfersById(id);}
 

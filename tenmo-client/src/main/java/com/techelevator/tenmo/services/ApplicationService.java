@@ -1,13 +1,13 @@
 package com.techelevator.tenmo.services;
 
-import com.techelevator.tenmo.model.AuthenticatedUser;
-import com.techelevator.tenmo.model.Balance;
-import com.techelevator.tenmo.model.Transfer;
+import com.techelevator.tenmo.model.*;
 import com.techelevator.util.BasicLogger;
 import org.springframework.http.*;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
+
+import java.math.BigDecimal;
 
 public class ApplicationService {
 
@@ -31,6 +31,77 @@ public class ApplicationService {
         }
         return balance;
     }
+
+    public Account getAccountById(AuthenticatedUser authenticatedUser, int accountId){
+        Account account= null;
+        try {
+            ResponseEntity<Account> response =
+                    restTemplate.exchange(API_BASE_URL + "/account/" + accountId, HttpMethod.GET, makeAuthEntity(authenticatedUser), Account.class);
+            account = response.getBody();
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+        return account;
+    }
+
+    public Account getAccountByUserId(AuthenticatedUser authenticatedUser, int userId){
+        Account account= null;
+        try {
+            ResponseEntity<Account> response =
+                    restTemplate.exchange(API_BASE_URL + "/account/user/" + userId, HttpMethod.GET, makeAuthEntity(authenticatedUser), Account.class);
+            account = response.getBody();
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+        return account;
+    }
+
+    public User[] viewAllUsers(AuthenticatedUser authenticatedUser){
+        User[] users = null;
+        try {
+            ResponseEntity<User[]> response =
+                    restTemplate.exchange(API_BASE_URL + "/users", HttpMethod.GET, makeAuthEntity(authenticatedUser), User[].class);
+            users = response.getBody();
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+        return users;
+    }
+
+    public User getUser(AuthenticatedUser authenticatedUser,int userId){
+        User user = null;
+        try {
+            ResponseEntity<User> response =
+                    restTemplate.exchange(API_BASE_URL + "/users/" + userId, HttpMethod.GET, makeAuthEntity(authenticatedUser), User.class);
+            user = response.getBody();
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+        return user;
+    }
+
+    public Transfer[] getTransferHistory(AuthenticatedUser authenticatedUser, int accountId){
+        Transfer[] transfers = null;
+        try {
+            ResponseEntity<Transfer[]> response =
+                    restTemplate.exchange(API_BASE_URL + "/transfer/user/" + accountId, HttpMethod.GET, makeAuthEntity(authenticatedUser), Transfer[].class);
+            transfers = response.getBody();
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+        return transfers;
+    }
+
+    public void sendTeMoney(AuthenticatedUser authenticatedUser, Transfer transfer){
+        try {
+            restTemplate.exchange(API_BASE_URL + "/transfer", HttpMethod.POST, makeTransferEntity(authenticatedUser, transfer), Transfer.class);
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+    }
+
+
+
 
     private HttpEntity<Transfer> makeTransferEntity(AuthenticatedUser authenticatedUser, Transfer transfer) {
         HttpHeaders headers = new HttpHeaders();
