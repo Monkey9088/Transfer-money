@@ -92,6 +92,34 @@ public class ApplicationService {
         return transfers;
     }
 
+    public Transfer getTransfer(AuthenticatedUser authenticatedUser, int transferId){
+        Transfer transfer = null;
+        try {
+            ResponseEntity<Transfer> response =
+                    restTemplate.exchange(API_BASE_URL + "/transfer/" + transferId, HttpMethod.GET, makeAuthEntity(authenticatedUser), Transfer.class);
+            transfer = response.getBody();
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+        return transfer;
+    }
+
+    public void approveTransfer(AuthenticatedUser authenticatedUser,Transfer transfer){
+        try {
+            restTemplate.exchange(API_BASE_URL + "/transfer/approve", HttpMethod.PUT, makeTransferEntity(authenticatedUser, transfer), Transfer.class);
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+    }
+
+    public void rejectTransfer(AuthenticatedUser authenticatedUser,Transfer transfer){
+        try {
+            restTemplate.exchange(API_BASE_URL + "/transfer/reject", HttpMethod.PUT, makeTransferEntity(authenticatedUser, transfer), Transfer.class);
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+    }
+
     public void sendTeMoney(AuthenticatedUser authenticatedUser, Transfer transfer){
         try {
             restTemplate.exchange(API_BASE_URL + "/transfer", HttpMethod.POST, makeTransferEntity(authenticatedUser, transfer), Transfer.class);

@@ -73,8 +73,8 @@ public class TenmoController {
         return transferDao.listAllTransfersByAccountId(id);
     }
 
-    //Get All transfers by Account Id
-    //@path accountId
+    //Get All transfers by Transfer Id
+    //@path transferId
     @GetMapping("/transfer/{id}")
     public Transfer getByTransferId(@PathVariable int id){
         return transferDao.getByTransferId(id);

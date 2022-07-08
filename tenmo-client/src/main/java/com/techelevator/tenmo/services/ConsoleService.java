@@ -35,6 +35,14 @@ public class ConsoleService {
         System.out.println();
     }
 
+    public void printStatusMenu(){
+        System.out.println();
+        System.out.println("1: Approve");
+        System.out.println("2: Reject");
+        System.out.println("0: Exit");
+        System.out.println();
+    }
+
     public void printMainMenu() {
         System.out.println();
         System.out.println("1: View your current balance");

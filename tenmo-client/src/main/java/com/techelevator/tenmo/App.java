@@ -8,6 +8,7 @@ import org.springframework.beans.NullValueInNestedPathException;
 
 import java.math.BigDecimal;
 import java.sql.SQLOutput;
+import java.util.Arrays;
 
 public class App {
 
@@ -103,13 +104,15 @@ public class App {
         int accountId = currentAccount.getAccountId();
         Transfer[] transfers = applicationService.getTransferHistory(currentUser, accountId);
         for(Transfer transfer : transfers){
-           if(transfer.getTransferAccountFrom()==accountId){
-               String userName = applicationService.getUser(currentUser, Math.toIntExact(currentUser.getUser().getId())).getUsername();
-               System.out.println("transferId" + " " + transfer.getTransferId() + " "+ "receiver" + " "+ transfer.getTransferAccountTo() + " "+ "$amount" + " " + transfer.getAmount());
+           if(transfer.getTransferAccountFrom()==accountId && transfer.getTransferStatusId() == 2){
+               String userName = applicationService.getUser(currentUser,
+                       applicationService.getAccountById(currentUser,transfer.getTransferAccountTo()).getUserId()).getUsername();
+               System.out.println("Transfer ID" + " " + transfer.getTransferId() + " "+ "receiver" + " "+ userName + " "+ "$amount" + " " + transfer.getAmount());
            }
-           if(transfer.getTransferAccountTo()==accountId){
-               String userName = applicationService.getUser(currentUser, Math.toIntExact(currentUser.getUser().getId())).getUsername();
-               System.out.println("transferId" + " " + transfer.getTransferId() + " "+ "from" + " "+ transfer.getTransferAccountFrom() + " "+ "$amount" + " " + transfer.getAmount());
+           if(transfer.getTransferAccountTo()==accountId && transfer.getTransferStatusId() == 2){
+               String userName = applicationService.getUser(currentUser,
+                       applicationService.getAccountById(currentUser,transfer.getTransferAccountFrom()).getUserId()).getUsername();
+               System.out.println("Transfer ID" + " " + transfer.getTransferId() + " "+ "from" + " "+ userName + " "+ "$amount" + " " + transfer.getAmount());
            };
        }
         //System.out.println("History will be listed Here!");
@@ -121,34 +124,87 @@ public class App {
         int accountId = currentAccount.getAccountId();
         Transfer[] transfers = applicationService.getTransferHistory(currentUser, accountId);
         for(Transfer transfer : transfers){
-            if(transfer.getTransferStatusId()==1){
-                System.out.println("transferId" + " " + transfer.getTransferId() + " "+ "from" + " "+ transfer.getTransferAccountFrom() + " "+ "$amount" + " " + transfer.getAmount());
+            if(transfer.getTransferStatusId()==1 && transfer.getTransferAccountFrom()== currentAccount.getAccountId()){
+                String senderName = applicationService.getUser(currentUser,
+                        applicationService.getAccountById(currentUser,transfer.getTransferAccountFrom()).getUserId()).getUsername();
+                String receiverName = applicationService.getUser(currentUser,
+                        applicationService.getAccountById(currentUser,transfer.getTransferAccountTo()).getUserId()).getUsername();
+                System.out.println("ID" + " " + transfer.getTransferId() + " - "+ "from" + " "+ transfer.getTransferAccountFrom() + " - " +
+                        senderName + " To: " + transfer.getTransferAccountTo()+" - " + receiverName + " "+ "$ Amount:" + " " + transfer.getAmount());
             }
         }
-		
+
+        int transferId = consoleService.promptForInt("Please enter the ID you would like to Approve: \n");
+        Transfer selectedTransfer = applicationService.getTransfer(currentUser,transferId);
+            int menuSelection = -1;
+            while (menuSelection != 0 && transferId != 0 && transferId == selectedTransfer.getTransferId()) {
+                consoleService.printStatusMenu();
+                menuSelection = consoleService.promptForMenuSelection("Please Select Action: ");
+                if (menuSelection == 1) {
+                    selectedTransfer.setTransferStatusId(2);
+                    applicationService.approveTransfer(currentUser,selectedTransfer);
+                    System.out.println("Pending Transfer Successfully Approved!");
+                    System.out.println("Your Current Balance is: " +applicationService.getBalance(currentUser));
+                    consoleService.pause();
+                    mainMenu();
+                } else if (menuSelection == 2) {
+                    applicationService.rejectTransfer(currentUser,selectedTransfer);
+                    System.out.println("Pending Transfer Successfully Rejected!");
+                    consoleService.pause();
+                    mainMenu();
+                } else if (menuSelection == 0) {
+                    continue;
+                } else {
+                    System.out.println("Invalid Selection");
+                    consoleService.pause();
+                    mainMenu();
+                }
+            }
 	}
 
 	private void sendBucks() {
 		// TODO Auto-generated method stub
-        Account currentAccount = applicationService.getAccountByUserId(currentUser, Math.toIntExact(currentUser.getUser().getId()));
-        int accountId = currentAccount.getAccountId();
-
-        int sendToUserId = consoleService.promptForInt("Please enter the User Id you would like to send Bucks.");
+        //List the users and select among them
+        User[] users = applicationService.viewAllUsers(currentUser);
+        System.out.println("Select Receiver");
+        for(User user : users){
+            if(user.getUsername().equals(currentUser.getUser().getUsername()))
+                continue;
+            System.out.println(user.getId() + "- " + user.getUsername());
+        }
+        int sendToUserId = consoleService.promptForInt("Please enter the User Id you would like to send Bucks: \n");
         Account sendToAccount = applicationService.getAccountByUserId(currentUser, sendToUserId);
         int sendToAccountId = sendToAccount.getAccountId();
 
-        if(sendToUserId == currentAccount.getUserId()){
+
+
+        Account currentAccount = applicationService.getAccountByUserId(currentUser, Math.toIntExact(currentUser.getUser().getId()));
+        int accountId = currentAccount.getAccountId();
+
+        //Manual UserId input
+        /*int sendToUserId = consoleService.promptForInt("Please enter the User Id you would like to send Bucks: ");
+        Account sendToAccount = applicationService.getAccountByUserId(currentUser, sendToUserId);
+        int sendToAccountId = sendToAccount.getAccountId();*/
+
+        if(sendToUserId == currentAccount.getUserId()) {
             System.out.println("Sending money to yourself is not permitted!");
             consoleService.pause();
+            mainMenu();
+        }else if(Arrays.stream(users).anyMatch(n->n.getId() != sendToUserId)){
+            System.out.println("User ID is invalid. Please Login and Try Again!");
+            consoleService.pause();
+            mainMenu();
         }else{
-            BigDecimal transferAmount = consoleService.promptForBigDecimal("Please enter the Amount.");
+            BigDecimal transferAmount = consoleService.promptForBigDecimal("Please enter the Amount: \n");
             if(transferAmount.compareTo(new BigDecimal("0")) <= 0){
                 System.out.println("The Amount must be greater than 0!");
                 consoleService.pause();
+                mainMenu();
             }
             if(transferAmount.compareTo(applicationService.getBalance(currentUser).getBalance()) >= 1){
                 System.out.println("The Amount must be less than your Current Balance!");
                 consoleService.pause();
+                mainMenu();
             }
             Transfer newTransfer = new Transfer();
             newTransfer.setTransferTypeId(2);
@@ -158,7 +214,7 @@ public class App {
             newTransfer.setTransferAccountFrom(accountId);
 
             applicationService.sendTeMoney(currentUser, newTransfer);
-            System.out.println(transferAmount + " TE Bucks Succesfully Sent to " + sendToAccountId);
+            System.out.println(transferAmount + " TE Bucks Succesfully Sent to " + applicationService.getUser(currentUser, applicationService.getAccountById(currentUser,sendToAccountId).getUserId()).getUsername());
             System.out.println("Your Current Balance is " + applicationService.getBalance(currentUser));
         }
 
@@ -169,14 +225,26 @@ public class App {
 	}
 
 	private void requestBucks() {
+        //List Users
+        User[] users = applicationService.viewAllUsers(currentUser);
+        System.out.println("Select User to Request Bucks");
+        for(User user : users){
+            if(user.getUsername().equals(currentUser.getUser().getUsername()))
+                continue;
+            System.out.println(user.getId() + "- " + user.getUsername());
+        }
+        int requestFromUserId = consoleService.promptForInt("Please enter the User Id you would like to request Bucks: \n");
+        Account requestFromAccount = applicationService.getAccountByUserId(currentUser, requestFromUserId);
+        int requestFromAccountId = requestFromAccount.getAccountId();
+
         Account currentAccount = applicationService.getAccountByUserId(currentUser, Math.toIntExact(currentUser.getUser().getId()));
         int accountId = currentAccount.getAccountId();
 
-        int sendToUserId = consoleService.promptForInt("Please enter the User Id you would like to request Bucks.");
+        /*int sendToUserId = consoleService.promptForInt("Please enter the User Id you would like to request Bucks: ");
         Account sendToAccount = applicationService.getAccountByUserId(currentUser, sendToUserId);
-        int sendToAccountId = sendToAccount.getAccountId();
+        int sendToAccountId = sendToAccount.getAccountId();*/
 
-        if(sendToUserId == currentAccount.getUserId()){
+        if(requestFromUserId == currentAccount.getUserId()){
             System.out.println("Requesting money from yourself is not permitted");
             consoleService.pause();
         }else {
@@ -191,11 +259,11 @@ public class App {
             newTransfer.setTransferTypeId(1);
             newTransfer.setTransferStatusId(1);
             newTransfer.setAmount(transferAmount);
-            newTransfer.setTransferAccountTo(sendToAccountId);
-            newTransfer.setTransferAccountFrom(accountId);
+            newTransfer.setTransferAccountTo(accountId);
+            newTransfer.setTransferAccountFrom(requestFromAccountId);
 
             applicationService.sendTeMoney(currentUser, newTransfer);
-            System.out.println(transferAmount + " Your request has been sent to  " + sendToAccountId);
+            System.out.println(transferAmount + " Your request has been sent to  " + requestFromAccountId);
 
 
 
