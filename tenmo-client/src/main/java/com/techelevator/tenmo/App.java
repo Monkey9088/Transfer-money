@@ -124,7 +124,8 @@ public class App {
         int accountId = currentAccount.getAccountId();
         Transfer[] transfers = applicationService.getTransferHistory(currentUser, accountId);
         for(Transfer transfer : transfers){
-            if(transfer.getTransferStatusId()==1 && transfer.getTransferAccountFrom()== currentAccount.getAccountId()){
+            if(transfer.getTransferStatusId()==1 &&
+                    transfer.getTransferAccountFrom()== currentAccount.getAccountId()){
                 String senderName = applicationService.getUser(currentUser,
                         applicationService.getAccountById(currentUser,transfer.getTransferAccountFrom()).getUserId()).getUsername();
                 String receiverName = applicationService.getUser(currentUser,
@@ -190,11 +191,11 @@ public class App {
             System.out.println("Sending money to yourself is not permitted!");
             consoleService.pause();
             mainMenu();
-        }else if(Arrays.stream(users).anyMatch(n->n.getId() != sendToUserId)){
-            System.out.println("User ID is invalid. Please Login and Try Again!");
+        }/*else if(Arrays.stream(users).anyMatch(n->n.getId() != sendToUserId)){
+            System.out.println("User ID is invalid. Please Try Again!");
             consoleService.pause();
             mainMenu();
-        }else{
+        }*/else{
             BigDecimal transferAmount = consoleService.promptForBigDecimal("Please enter the Amount: \n");
             if(transferAmount.compareTo(new BigDecimal("0")) <= 0){
                 System.out.println("The Amount must be greater than 0!");
@@ -248,7 +249,7 @@ public class App {
             System.out.println("Requesting money from yourself is not permitted");
             consoleService.pause();
         }else {
-            BigDecimal transferAmount = consoleService.promptForBigDecimal("Please enter the Amount.");
+            BigDecimal transferAmount = consoleService.promptForBigDecimal("Please enter the Amount: ");
             if (transferAmount.compareTo(new BigDecimal("0")) <= 0) {
                 System.out.println("The Amount must be greater than 0!");
                 consoleService.pause();
@@ -263,7 +264,8 @@ public class App {
             newTransfer.setTransferAccountFrom(requestFromAccountId);
 
             applicationService.sendTeMoney(currentUser, newTransfer);
-            System.out.println(transferAmount + " Your request has been sent to  " + requestFromAccountId);
+            System.out.println("$ " + transferAmount + " Your request has been sent to " +
+                    applicationService.getUser(currentUser, applicationService.getAccountById(currentUser,requestFromAccountId).getUserId()).getUsername());
 
 
 

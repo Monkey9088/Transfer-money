@@ -52,18 +52,24 @@ public class JdbcTransferDao implements TransferDao{
 
     @Override
     public void transferApprove(Transfer transfer) {
-        transfer.setTransferStatusId(2);
-        transfer.setTransferTypeId(2);
-        transfer(transfer);
-        /*String sql= "UPDATE tenmo_transfer SET transfer_status_id = ? WHERE transfer_id = ?;";
-        jdbcTemplate.update(sql,transferStatus, transfer.getTransferId());*/
+        //transfer.setTransferStatusId(2);
+        //transfer.setTransferTypeId(2);
+        //transfer(transfer);
+        int transferStatus = 2;
+        int transferType = 2;
+        String sql= "UPDATE tenmo_transfer SET transfer_status_id = ?, transfer_type_id = ? WHERE transfer_id = ?;";
+        jdbcTemplate.update(sql,transferStatus,transferType, transfer.getTransferId());
 
     }
 
     @Override
     public void transferReject(Transfer transfer) {
-        transfer.setTransferStatusId(3);
-        transfer(transfer);
+        /*transfer.setTransferStatusId(3);
+        transfer(transfer);*/
+        int transferStatus = 2;
+        //int transferType = 2;
+        String sql= "UPDATE tenmo_transfer SET transfer_status_id = ? WHERE transfer_id = ?;";
+        jdbcTemplate.update(sql,transferStatus, transfer.getTransferId());
     }
 
     @Override
